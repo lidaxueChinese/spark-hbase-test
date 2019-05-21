@@ -34,7 +34,7 @@ class SparkLoadHbaseDataDemo1(@transient private var sc:SparkContext,executeDate
     val hBaseContext = new HBaseContext(sc,hbaseConf)
     val scan = new Scan()
     scan.setCacheBlocks(false)
-    scan.setCaching(50)
+    scan.setCaching(100)
     val timestampPrefix = DateUtil.getFilterDatePrefix(executeDate)
     //fuzzy scan  HbaseRowkeyFilter.getFuzzyRowkeyFilter(timestampPrefix._1,timestampPrefix._2)
     // regex scan getRegexRowkeyFilter()
@@ -75,12 +75,21 @@ class SparkLoadHbaseDataDemo1(@transient private var sc:SparkContext,executeDate
     即前闭后开
    */
   def getSpecialDayData(rowkey:String,startTimeStamp:java.lang.Long,endTimeStamp:java.lang.Long):Boolean = {
-      val timeStamp = rowkey.split("_")(1).toLong
-      if(timeStamp >= startTimeStamp && timeStamp < endTimeStamp){
-        true
-      }else{
+    var timeStamp = 0L
+    try{
+      timeStamp = rowkey.split("_")(1).toLong
+    }catch{
+      case ex:NumberFormatException =>{
+        println("the exception rowkey is :"+rowkey)
         false
       }
+
+    }
+    if(timeStamp >= startTimeStamp && timeStamp < endTimeStamp){
+      true
+    }else{
+      false
+    }
   }
 
   def getRegexRowkeyFilter() : Filter = {
